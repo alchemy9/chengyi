@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>非遗 · 声音讲解测试</title><style>
+*{box-sizing:border-box}body{margin:0;background:#f7f5ef;color:#263b35;font:16px/1.7 system-ui,-apple-system,sans-serif}header{padding:22px 5vw;border-bottom:1px solid #dfdfd4;display:flex;justify-content:space-between;gap:20px}main{max-width:1000px;margin:28px auto;padding:0 20px}.card{background:#fffefb;border:1px solid #dfdfd4;border-radius:14px;padding:24px;margin-bottom:18px}h1{font-size:25px;margin:0 0 12px}h2{font-size:18px;margin:0 0 12px}a{color:#95633b}.muted{color:#68756e;font-size:14px}.row{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}label{display:block}select,input,button{font:inherit;padding:10px 12px;border:1px solid #dfdfd4;border-radius:8px;background:white;color:#263b35}select{width:100%}input{flex:1;min-width:180px}button{cursor:pointer}button.primary{background:#263b35;color:white}button:disabled{opacity:.5;cursor:default}#notice{min-height:30px;color:#95633b;white-space:pre-wrap}.answer{white-space:pre-wrap;min-height:130px}.badge{padding:4px 12px;background:#ece6d8;border-radius:20px;font-size:13px}audio{width:100%;margin:12px 0}.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.metric{padding:14px;border:1px solid #dfdfd4;border-radius:9px}.metric strong{display:block;font-size:23px}#detail{white-space:pre-wrap}@media(max-width:620px){.metrics{grid-template-columns:1fr}header{flex-wrap:wrap}}
+</style></head><body>
+<header><strong>非遗 · 声音讲解测试</strong><a href="/admin">模型与声音设置</a></header>
+<main><div id="notice" role="status" aria-live="polite"></div>
+<section class="card"><h1>说一句话，打开藏品、观察细节</h1><p class="muted">输入或按住说话，例如“打开青花缠枝莲纹碗”“看看碗心”。界面先更新，随后边生成边播放讲解；也支持“暂停讲解”“继续播放”“再讲一遍”。</p>
+<label>讲解物品<select id="item" aria-label="讲解物品"></select></label>
+<div class="row"><button id="explain" class="primary">听物品讲解</button><button id="new">开始新对话</button></div>
+<div id="hotspots" class="row"></div><form id="ask" class="row"><input id="question" required maxlength="2000" aria-label="你的问题或操作指令" placeholder="例如：打开青花缠枝莲纹碗 / 看看碗心"><button id="send" class="primary">发送</button></form><div class="row"><button id="record" class="primary" style="touch-action:none;user-select:none">按住说话，松开发送</button><span id="recordStatus" class="muted" role="status"></span></div><p id="transcript" class="muted"></p><p id="status" class="muted"></p></section>
+<section class="card" id="view" aria-label="当前展品"><h2 id="viewTitle">当前展品</h2><p id="viewSummary"></p><p id="viewPart" role="status" aria-live="polite">尚未选择观察部位。</p><p id="actionStatus" class="muted" role="status" aria-live="polite">操作完成后会在这里显示结果。</p><div id="actionChoices" class="row"></div></section>
+<section class="card"><span id="mode" class="badge">等待讲解</span><div id="answer" class="answer" aria-live="polite"></div><p id="sources" class="muted"></p><p id="warning" class="muted"></p>
+<audio id="audio" controls aria-label="当前讲解声音"></audio>
+<div class="row"><button id="pause">暂停播放</button><button id="resume">继续播放</button><button id="replay">重新播放</button><button id="stop">停止本轮讲解</button></div><p id="speechNote" class="muted">声音会按句子顺序播放。</p></section>
+<section class="card"><h2>这一轮等了多久</h2><div class="metrics">
+<div class="metric">第一段文字<strong id="firstText">—</strong></div>
+<div class="metric">第一段声音准备好<strong id="firstAudio">—</strong></div>
+<div class="metric">实际开始播放<strong id="firstPlay">—</strong></div>
+</div><p id="gap" class="muted"></p><p id="detail" class="muted">开始讲解后显示时间。只有使用真实服务后的结果，才代表实际等待时间。</p></section></main>
+<script src="/pcm-player.js"></script>
+<script src="/ui-controls.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+let items=[],session=null,visitorToken='',controller=null,busy=false,selectedHotspot=null;
+let playlist=[],index=-1,paused=false,blocked=false,epoch=0,started=0,firstPlayed=false,playbackGeneration=0;
+let usePCM=!!window.AudioContext&&!!window.HeritagePCMPlayer;
+const pcm=usePCM?new HeritagePCMPlayer({
+  onStart:()=>{if(!firstPlayed&&started){firstPlayed=true;$('firstPlay').textContent=duration(performance.now()-started);updateGap()}$('speechNote').textContent='正在边生成边播放。'},
+  onFinish:()=>{$('speechNote').textContent='本轮声音播放完成。'},
+  onBlocked:()=>{$('speechNote').textContent='声音已经到达，请点击“继续播放”以允许浏览器播放。'}
+}):null;
+$('audio').hidden=usePCM;
+function notice(text){$('notice').textContent=text}
+function duration(ms){return ms==null?'—':(ms/1000).toFixed(2)+' 秒'}
+function updateGap(){const text=Number($('firstText').textContent.replace(' 秒',''));const play=Number($('firstPlay').textContent.replace(' 秒',''));if(Number.isFinite(text)&&Number.isFinite(play))$('gap').textContent='文字出现后 '+duration((play-text)*1000)+' 开始播放。'}
+async function api(path,method='GET',body,options={}){const response=await fetch('/api/v1'+path,{method,headers:{'Content-Type':'application/json',...(visitorToken?{'X-Session-Token':visitorToken}:{})},...(body?{body:JSON.stringify(body)}:{}),...options});const value=await response.json();if(!response.ok)throw Error(value.error?.message||'请求没有完成');return value.data}
+function safe(action){return async event=>{try{await action(event)}catch(error){notice(error.message)}}}
+function setBusy(value){busy=value;['item','explain','new','send'].forEach(id=>$(id).disabled=value);$('hotspots').querySelectorAll('button').forEach(button=>button.disabled=value)}
+function clearAudio(){pcm?.reset();playbackGeneration++;const player=$('audio');player.pause();player.removeAttribute('src');player.load();playlist.forEach(entry=>URL.revokeObjectURL(entry.url));playlist=[];index=-1;paused=false;blocked=false}
+async function playCurrent(){if(index<0||index>=playlist.length||paused)return;const generation=playbackGeneration;try{await $('audio').play();if(generation===playbackGeneration)blocked=false}catch{if(generation!==playbackGeneration)return;blocked=true;$('speechNote').textContent='声音已经准备好，请点击“继续播放”。浏览器未允许自动播放。'}}
+function next(){if(paused||blocked)return;if(index+1>=playlist.length){if(playlist.length)$('speechNote').textContent=busy?'等待下一段声音…':'本轮声音播放完成。';return;}index++;$('audio').src=playlist[index].url;$('speechNote').textContent='正在播放第 '+(index+1)+' 段讲解。';void playCurrent()}
+function queueAudio(data){if(data.epoch!==epoch)return;const bytes=Uint8Array.from(atob(data.audio_base64),char=>char.charCodeAt(0));const url=URL.createObjectURL(new Blob([bytes],{type:data.mime_type}));playlist.push({url,text:data.text});if(index<0||$('audio').ended)next()}
+$('audio').onended=next;
+$('audio').onplaying=()=>{if(!firstPlayed&&started){firstPlayed=true;$('firstPlay').textContent=duration(performance.now()-started);updateGap()}};
+$('audio').onerror=()=>{if(playlist.length)$('speechNote').textContent='浏览器没有成功播放这段音频，请检查声音连接测试。'};
+$('pause').onclick=()=>{if(usePCM){pcm.pause();$('speechNote').textContent='播放已暂停。';return}paused=true;$('audio').pause();$('speechNote').textContent='播放已暂停。'};
+$('resume').onclick=()=>{if(usePCM){pcm.resume();$('speechNote').textContent=pcm.hasAudio?'继续播放。':'正在等待声音。';return}paused=false;blocked=false;if(index<0)next();else if($('audio').ended)next();else void playCurrent()};
+$('replay').onclick=()=>{if(usePCM){pcm.replay();$('speechNote').textContent=pcm.hasAudio?'重新播放已有讲解。':'当前还没有可重播的声音。';return}if(!playlist.length)return;$('audio').pause();index=-1;paused=false;blocked=false;next()};
+$('stop').onclick=()=>{controller?.abort();recognitionController?.abort();void endRecording(false);clearAudio();void ui.cancel().catch(error=>notice(error.message));$('speechNote').textContent='本轮讲解已停止。'};
+function renderHotspots(){const item=items.find(entry=>entry.id===$('item').value);$('hotspots').replaceChildren();for(const hotspot of item?.hotspots||[]){const button=document.createElement('button');button.textContent='观察：'+hotspot.name;button.disabled=busy;button.className=hotspot.key===selectedHotspot?'primary':'';button.setAttribute('aria-pressed',String(hotspot.key===selectedHotspot));button.onclick=safe(()=>handleUtterance('看看 '+item.id+'的'+hotspot.name));$('hotspots').append(button)}}
+function renderView({item_id,hotspot_id}){const item=items.find(entry=>entry.id===item_id);if(!item)throw Error('当前页面没有这件藏品，请刷新页面。');$('item').value=item_id;selectedHotspot=hotspot_id||null;const part=item.hotspots.find(entry=>entry.key===selectedHotspot);$('viewTitle').textContent='当前展品：'+item.name;$('viewSummary').textContent=item.is_demo?'当前为演示资料，用于体验藏品切换和部位观察。':'点击部位或说出部位名称，可以查看细节并听取对应讲解。';$('viewPart').textContent=part?'正在观察：'+part.name:'尚未选择观察部位，可以点击上方部位，或说“看看”加部位名称。';renderHotspots()}
+async function newSession(){const result=await api('/sessions','POST',{item_id:$('item').value,audience:'general'});session=result.session;visitorToken=result.session_token;renderView({item_id:session.current_item_id,hotspot_id:null})}
+async function applyPlayback(type){if(!(usePCM?pcm.hasAudio:playlist.length))throw Error('当前没有可控制的讲解声音。');if(type==='audio_stop'){controller?.abort();clearAudio();$('speechNote').textContent='本轮讲解已停止。';return 'stopped'}if((type==='audio_pause'||type==='audio_resume')&&(usePCM?pcm.finished&&!pcm.sources.size:$('audio').ended))throw Error('声音已经播放完，可以说“再讲一遍”。');if(usePCM){if(type==='audio_pause'){pcm.pause();if(pcm.context.state==='running')await pcm.context.suspend();return 'paused'}if(type==='audio_repeat')pcm.replay();else pcm.resume();await pcm.context.resume();if(pcm.context.state!=='running')throw Error('浏览器尚未允许播放，请点击继续播放。');return 'playing'}if(type==='audio_pause'){paused=true;$('audio').pause();return 'paused'}if(type==='audio_repeat'){index=-1;paused=false;blocked=false;next()}else{paused=false;blocked=false;if(index<0||$('audio').ended)next()}await $('audio').play();return 'playing'}
+const ui=new HeritageUIController({api,getSession:()=>session,setSession:value=>{session=value},ensureSession:async()=>{if(!session)await newSession()},getItems:()=>items,getView:()=>({item_id:$('item').value||null,hotspot_id:selectedHotspot}),setView:renderView,playback:applyPlayback});
+async function handleUtterance(text){if(busy)return;setBusy(true);if(usePCM&&!pcm.context)pcm.unlock();notice('');$('actionChoices').replaceChildren();$('actionStatus').textContent='正在理解你的请求…';const start=performance.now();let result;try{result=await ui.run(text);$('actionStatus').textContent=result.message+' · 界面处理 '+duration(performance.now()-start);if(result.action_type?.startsWith('audio_'))$('speechNote').textContent=result.message;if(result.decision==='clarify'){for(const choice of result.choices||[]){const button=document.createElement('button');button.textContent=choice.label;button.onclick=safe(()=>handleUtterance(choice.text));$('actionChoices').append(button)}}}catch(error){if(error.name!=='AbortError'){notice(error.message);$('actionStatus').textContent='操作结果未确认，请刷新状态后重试。'}else $('actionStatus').textContent='界面操作已取消。'}finally{setBusy(false)}if(result?.interaction&&!result.duplicate)await interact(result.interaction)}
+async function interact(payload){if(busy)return;setBusy(true);clearAudio();if(usePCM)pcm.unlock();$('speechNote').textContent='正在等待第一段声音…';epoch=0;started=performance.now();firstPlayed=false;['firstText','firstAudio','firstPlay'].forEach(id=>$(id).textContent='—');$('answer').textContent='';$('warning').textContent='';$('sources').textContent='';$('gap').textContent='';$('detail').textContent='正在记录本轮等待时间…';$('mode').textContent='正在讲解';notice('');controller=new AbortController();let committed=false,reader;
+try{if(!session)await newSession();const response=await fetch('/api/v1/sessions/'+session.id+'/interact/voice-stream'+(usePCM?'?audio_format=pcm':''),{method:'POST',headers:{'Content-Type':'application/json','X-Session-Token':visitorToken},body:JSON.stringify(payload),signal:controller.signal});if(!response.ok){const value=await response.json();throw Error(value.error?.message||'讲解没有完成')}reader=response.body.getReader();const decoder=new TextDecoder();let buffer='';
+function consume(block){let type='',data='';for(const line of block.split('\n')){if(line.startsWith('event:'))type=line.slice(6).trim();if(line.startsWith('data:'))data+=line.slice(5).trim()}if(!data)return;const value=JSON.parse(data);
+if(type==='delta'){$('answer').textContent+=value.text;if($('firstText').textContent==='—')$('firstText').textContent=duration(performance.now()-started)}
+if(type==='reset'){epoch++;clearAudio();$('answer').textContent='';$('speechNote').textContent='讲解内容已更新，正在准备新的声音。'}
+if(type==='audio_chunk'&&value.epoch===epoch){pcm.append(value);if($('firstAudio').textContent==='—')$('firstAudio').textContent=duration(performance.now()-started)}
+if(type==='audio'){queueAudio(value);if($('firstAudio').textContent==='—')$('firstAudio').textContent=duration(performance.now()-started)}
+if(type==='speech_error'||type==='speech_warning')$('speechNote').textContent=value.message;
+if(type==='result'){committed=true;session=value.session;$('sources').textContent='参考资料：'+[...new Set(value.sources.map(source=>source.source_name+' · '+source.title))].join('；');$('answer').textContent=value.text;$('warning').textContent=value.warning||'';$('mode').textContent=({live:'大模型讲解',demo:'演示资料讲解',fallback:'模型暂时不可用 · 资料讲解'}[value.mode]||value.mode)}
+if(type==='voice_done'){if(usePCM)pcm.finish();$('detail').textContent='传输方式：'+(value.audio_format==='pcm'?'流式边到边播':'整句 MP3')+'\n开始合成第一段：'+duration(value.first_speech_request_ms)+'\n后端收到第一段语音数据：'+duration(value.first_audio_byte_ms)+'\n文字生成完成：'+duration(value.text_done_ms)+'\n声音全部准备完成：'+duration(value.total_ms)+' · 共 '+value.segments+' 段'+(value.speech_error?'\n声音没有完整生成，请查看上方提示。':'');}
+if(type==='error')throw Error(value.message);
+}
+while(true){const {done,value}=await reader.read();buffer+=decoder.decode(value||new Uint8Array(),{stream:!done}).replace(/\r\n/g,'\n');let split;while((split=buffer.indexOf('\n\n'))>=0){consume(buffer.slice(0,split));buffer=buffer.slice(split+2)}if(done)break}if(!committed)throw Error('讲解连接中断，请刷新状态后再决定是否重试。');
+}catch(error){if(error.name==='AbortError'){$('mode').textContent=committed?'文字已完成 · 播放已停止':'讲解已停止'}else{clearAudio();$('mode').textContent='讲解未完成';notice(error.message)}}
+finally{if(reader)await reader.cancel().catch(()=>{});controller=null;if(session){try{session=await api('/sessions/'+session.id);renderView({item_id:session.current_item_id,hotspot_id:session.current_hotspot_id})}catch{session=null;visitorToken=''}}setBusy(false)}}
+$('item').onchange=safe(async()=>{const next=$('item').value;clearAudio();setBusy(true);try{await ui.sync(next);$('actionStatus').textContent='已切换藏品，后续提问会使用当前藏品资料。'}catch(error){if(session)renderView({item_id:session.current_item_id,hotspot_id:session.current_hotspot_id});throw error}finally{setBusy(false)}});
+$('new').onclick=safe(async()=>{clearAudio();await newSession();$('answer').textContent='';notice('新的对话已开始。')});
+$('explain').onclick=safe(()=>interact({event:'explain',item_id:$('item').value}));
+$('ask').onsubmit=safe(async event=>{event.preventDefault();const question=$('question').value.trim();if(!question)return;await handleUtterance(question);$('question').value=''});
+safe(async()=>{const [listing,status,health]=await Promise.all([api('/items?page_size=100'),api('/voice/status'),fetch('/health').then(response=>response.json())]);items=listing.items;for(let page=2;items.length<listing.total;page++){const more=await api('/items?page_size=100&page='+page);if(!more.items.length)break;items.push(...more.items)}for(const item of items){const option=document.createElement('option');option.value=item.id;option.textContent=item.name;$('item').append(option)}if(items.length)renderView({item_id:$('item').value,hotspot_id:null});$('status').textContent=(status.enabled?'声音已配置 · '+status.voice:'声音尚未配置，请先到后台填写硅基流动 Key')+(health.data.llm_mode==='demo'?'；当前讲解使用演示资料，真实问答需要接入 Dify。':'；当前已启用大模型接口。');if(!items.length){setBusy(true);notice('还没有已发布的非遗物品，请先添加资料。')}})();
+window.addEventListener('pagehide',()=>{controller?.abort();recognitionController?.abort();void endRecording(false);clearAudio();pcm?.destroy()});
+
+let held=false,recording=null,recognitionController=null;
+function makeWav(parts,total){
+  const buffer=new ArrayBuffer(44+total*2),view=new DataView(buffer);
+  function word(offset,value){for(let i=0;i<value.length;i++)view.setUint8(offset+i,value.charCodeAt(i))}
+  word(0,'RIFF');view.setUint32(4,36+total*2,true);word(8,'WAVE');word(12,'fmt ');
+  view.setUint32(16,16,true);view.setUint16(20,1,true);view.setUint16(22,1,true);
+  view.setUint32(24,16000,true);view.setUint32(28,32000,true);view.setUint16(32,2,true);
+  view.setUint16(34,16,true);word(36,'data');view.setUint32(40,total*2,true);
+  let offset=44;for(const part of parts)for(const raw of part){const value=Math.max(-1,Math.min(1,raw));view.setInt16(offset,value<0?value*32768:value*32767,true);offset+=2}
+  return new Blob([buffer],{type:'audio/wav'});
+}
+async function beginRecording(){
+  if(busy||recording)return;if(usePCM){if(!pcm.context)pcm.unlock();pcm.pause()}held=true;setBusy(true);notice('');
+  $('recordStatus').textContent='正在准备麦克风…';let context,stream,node;
+  try{
+    context=new AudioContext({sampleRate:16000});await context.resume();
+    stream=await navigator.mediaDevices.getUserMedia({audio:{channelCount:1,echoCancellation:true,noiseSuppression:true}});
+    if(!held){stream.getTracks().forEach(track=>track.stop());await context.close();setBusy(false);$('recordStatus').textContent='请按住按钮说话。';return}
+    if(context.sampleRate!==16000)throw Error('当前浏览器不支持此录音格式，请使用新版 Chrome。');
+    await context.audioWorklet.addModule('/recording-worklet.js');
+    if(!held){stream.getTracks().forEach(track=>track.stop());await context.close();setBusy(false);return}
+    const source=context.createMediaStreamSource(stream);node=new AudioWorkletNode(context,'heritage-recorder');
+    recording={context,stream,node,source,parts:[],total:0};
+    node.port.onmessage=event=>{if(!recording)return;if(event.data.flushed){recording.flush?.();return}const remain=480000-recording.total;const samples=event.data.subarray(0,remain);recording.parts.push(samples);recording.total+=samples.length;$('recordStatus').textContent='正在录音 · '+(recording.total/16000).toFixed(1)+' 秒';if(recording.total>=480000&&!recording.finishing)void endRecording(true)};
+    source.connect(node);node.connect(context.destination);pcm?.pause();paused=true;$('audio').pause();
+    $('record').textContent='松开发送';$('recordStatus').textContent='正在录音…';
+  }catch(error){held=false;stream?.getTracks().forEach(track=>track.stop());node?.disconnect();if(context)await context.close().catch(()=>{});recording=null;setBusy(false);$('recordStatus').textContent='';notice(error.name==='NotAllowedError'?'麦克风权限未开启，请允许本站使用麦克风后重试。':error.message)}
+}
+async function endRecording(send){
+  held=false;const active=recording;if(!active)return;if(!send)active.cancelled=true;if(active.finishing)return;active.finishing=true;await new Promise(resolve=>{active.flush=resolve;active.node.port.postMessage('flush');setTimeout(resolve,100)});recording=null;
+  active.node.port.onmessage=null;active.source.disconnect();active.node.disconnect();active.stream.getTracks().forEach(track=>track.stop());await active.context.close().catch(()=>{});
+  $('record').textContent='按住说话，松开发送';
+  if(!send||active.cancelled){setBusy(false);$('recordStatus').textContent='录音已取消。';return}
+  if(active.total<3200){setBusy(false);$('recordStatus').textContent='录音太短，请再说一次。';return}
+  $('recordStatus').textContent='正在识别…';recognitionController=new AbortController();let recognized;
+  try{
+    if(!session)await newSession();
+    const response=await fetch('/api/v1/sessions/'+session.id+'/transcribe',{method:'POST',headers:{'Content-Type':'audio/wav','X-Session-Token':visitorToken},body:makeWav(active.parts,active.total),signal:recognitionController.signal});
+    const value=await response.json();if(!response.ok)throw Error(value.error?.message||'语音识别没有完成');recognized=value.data;
+    $('transcript').textContent='你说：'+recognized.text;$('recordStatus').textContent='识别完成 · '+duration(recognized.latency_ms);
+  }catch(error){if(error.name!=='AbortError')notice(error.message);$('recordStatus').textContent='识别未完成。'}
+  finally{recognitionController=null;setBusy(false)}
+  if(!recognized)return;
+  await handleUtterance(recognized.text);
+}
+$('record').onpointerdown=event=>{if(busy)return;event.preventDefault();$('record').setPointerCapture(event.pointerId);void beginRecording()};
+$('record').onpointerup=()=>void endRecording(true);
+$('record').onpointercancel=()=>void endRecording(false);
+$('record').onkeydown=event=>{if((event.code==='Space'||event.code==='Enter')&&!event.repeat){event.preventDefault();void beginRecording()}};
+$('record').onkeyup=event=>{if(event.code==='Space'||event.code==='Enter'){event.preventDefault();void endRecording(true)}};
+</script></body></html>

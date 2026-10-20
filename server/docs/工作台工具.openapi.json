@@ -1,0 +1,1557 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "陶艺工作台",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8000"
+    }
+  ],
+  "paths": {
+    "/api/v1/workbenches/{project_id}": {
+      "get": {
+        "operationId": "get_workbench_state",
+        "description": "读取当前器形、高度、直径、泥料、釉色、纹样、光泽、转盘和视角。同时返回 revision，供后续修改使用。",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionToken": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "当前工作台状态与待执行指令"
+          }
+        }
+      }
+    },
+    "/api/v1/workbenches/{project_id}/tools/set_base_shape": {
+      "post": {
+        "operationId": "set_base_shape",
+        "description": "切换初始器形：vase 花器、jar 陶罐、bowl 茶碗、cup 直筒杯、yuhuchun 玉壶春瓶（青瓷云纹瓶原器的轮廓）；会重置轮廓和高度，保留泥料与釉。 返回 pending 后由打开的工作台执行，收到 applied 才能确认完成。",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "expected_revision",
+                  "client_request_id",
+                  "arguments"
+                ],
+                "properties": {
+                  "expected_revision": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "client_request_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "arguments": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "shape": {
+                        "enum": [
+                          "vase",
+                          "jar",
+                          "bowl",
+                          "cup",
+                          "yuhuchun"
+                        ],
+                        "title": "Shape",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "shape"
+                    ],
+                    "title": "BaseShape",
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "工作台操作及实际执行状态"
+          }
+        }
+      }
+    },
+    "/api/v1/workbenches/{project_id}/tools/set_dimensions": {
+      "post": {
+        "operationId": "set_dimensions",
+        "description": "设置器物高度或最大直径，单位厘米；直径会等比缩放全部轮廓。 返回 pending 后由打开的工作台执行，收到 applied 才能确认完成。",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "expected_revision",
+                  "client_request_id",
+                  "arguments"
+                ],
+                "properties": {
+                  "expected_revision": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "client_request_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "arguments": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "height_cm": {
+                        "anyOf": [
+                          {
+                            "maximum": 40,
+                            "minimum": 8,
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Height Cm"
+                      },
+                      "diameter_cm": {
+                        "anyOf": [
+                          {
+                            "maximum": 34.8,
+                            "minimum": 3.84,
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Diameter Cm"
+                      }
+                    },
+                    "title": "Dimensions",
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "工作台操作及实际执行状态"
+          }
+        }
+      }
+    },
+    "/api/v1/workbenches/{project_id}/tools/reshape_region": {
+      "post": {
+        "operationId": "reshape_region",
+        "description": "精细塑形。part可选mouth口沿、neck瓶颈、shoulder瓶肩、belly肚子、base底部、upper上半部、middle中间、lower下半部、whole整体，也可给高度比例区间。side=front/back/left/right时只调整从当前视角看到的一侧，会暂停转盘；all为整圈。angle_deg是器物自身坐标的固定角度，用于承接同一位置，与非all的side不能同时提供。radius_scale_percent为百分比变化，或使用radius_delta_cm厘米，二选一。 返回 pending 后由打开的工作台执行，收到 applied 才能确认完成。",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "expected_revision",
+                  "client_request_id",
+                  "arguments"
+                ],
+                "properties": {
+                  "expected_revision": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "client_request_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "arguments": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "start_height_ratio": {
+                        "anyOf": [
+                          {
+                            "maximum": 1,
+                            "minimum": 0,
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Start Height Ratio"
+                      },
+                      "end_height_ratio": {
+                        "anyOf": [
+                          {
+                            "maximum": 1,
+                            "minimum": 0,
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "End Height Ratio"
+                      },
+                      "part": {
+                        "anyOf": [
+                          {
+                            "enum": [
+                              "whole",
+                              "mouth",
+                              "neck",
+                              "shoulder",
+                              "belly",
+                              "base",
+                              "upper",
+                              "middle",
+                              "lower"
+                            ],
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Part"
+                      },
+                      "radius_delta_cm": {
+                        "anyOf": [
+                          {
+                            "maximum": 6,
+                            "minimum": -6,
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Radius Delta Cm"
+                      },
+                      "radius_scale_percent": {
+                        "anyOf": [
+                          {
+                            "maximum": 100,
+                            "minimum": -60,
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Radius Scale Percent"
+                      },
+                      "side": {
+                        "default": "all",
+                        "enum": [
+                          "all",
+                          "front",
+                          "back",
+                          "left",
+                          "right"
+                        ],
+                        "title": "Side",
+                        "type": "string"
+                      },
+                      "angle_deg": {
+                        "anyOf": [
+                          {
+                            "maximum": 180,
+                            "minimum": -180,
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Angle Deg"
+                      },
+                      "angular_width_deg": {
+                        "default": 90,
+                        "maximum": 360,
+                        "minimum": 10,
+                        "title": "Angular Width Deg",
+                        "type": "number"
+                      }
+                    },
+                    "title": "Reshape",
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "工作台操作及实际执行状态"
+          }
+        }
+      }
+    },
+    "/api/v1/workbenches/{project_id}/tools/set_shape_profile": {
+      "post": {
+        "operationId": "set_shape_profile",
+        "description": "用从底到顶的控制点生成完整器形；radius_cm 是半径厘米，控制点须包含高度比例 0 和 1。指定花瓶、陶罐、茶碗或直筒杯时，同时填写shape为vase、jar、bowl或cup，以更新器形分类。 返回 pending 后由打开的工作台执行，收到 applied 才能确认完成。",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "expected_revision",
+                  "client_request_id",
+                  "arguments"
+                ],
+                "properties": {
+                  "expected_revision": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "client_request_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "arguments": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "points": {
+                        "items": {
+                          "$ref": "#/components/schemas/ControlPoint"
+                        },
+                        "maxItems": 16,
+                        "minItems": 2,
+                        "title": "Points",
+                        "type": "array"
+                      },
+                      "height_cm": {
+                        "anyOf": [
+                          {
+                            "maximum": 40,
+                            "minimum": 8,
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Height Cm"
+                      },
+                      "shape": {
+                        "anyOf": [
+                          {
+                            "enum": [
+                              "vase",
+                              "jar",
+                              "bowl",
+                              "cup",
+                              "yuhuchun"
+                            ],
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Shape"
+                      }
+                    },
+                    "required": [
+                      "points"
+                    ],
+                    "title": "ShapeProfile",
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "工作台操作及实际执行状态"
+          }
+        }
+      }
+    },
+    "/api/v1/workbenches/{project_id}/tools/smooth_surface": {
+      "post": {
+        "operationId": "smooth_surface",
+        "description": "抚平起伏。通过part指定部位或使用高度比例；side可只抚平某一侧的局部凹凸。strength 0–1。保留爱心或多边形本身的形状。 返回 pending 后由打开的工作台执行，收到 applied 才能确认完成。",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "expected_revision",
+                  "client_request_id",
+                  "arguments"
+                ],
+                "properties": {
+                  "expected_revision": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "client_request_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "arguments": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "start_height_ratio": {
+                        "anyOf": [
+                          {
+                            "maximum": 1,
+                            "minimum": 0,
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Start Height Ratio"
+                      },
+                      "end_height_ratio": {
+                        "anyOf": [
+                          {
+                            "maximum": 1,
+                            "minimum": 0,
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "End Height Ratio"
+                      },
+                      "part": {
+                        "anyOf": [
+                          {
+                            "enum": [
+                              "whole",
+                              "mouth",
+                              "neck",
+                              "shoulder",
+                              "belly",
+                              "base",
+                              "upper",
+                              "middle",
+                              "lower"
+                            ],
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Part"
+                      },
+                      "strength": {
+                        "default": 0.5,
+                        "exclusiveMinimum": 0,
+                        "maximum": 1,
+                        "title": "Strength",
+                        "type": "number"
+                      },
+                      "passes": {
+                        "default": 2,
+                        "maximum": 5,
+                        "minimum": 1,
+                        "title": "Passes",
+                        "type": "integer"
+                      },
+                      "side": {
+                        "default": "all",
+                        "enum": [
+                          "all",
+                          "front",
+                          "back",
+                          "left",
+                          "right"
+                        ],
+                        "title": "Side",
+                        "type": "string"
+                      },
+                      "angle_deg": {
+                        "anyOf": [
+                          {
+                            "maximum": 180,
+                            "minimum": -180,
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Angle Deg"
+                      },
+                      "angular_width_deg": {
+                        "default": 90,
+                        "maximum": 360,
+                        "minimum": 10,
+                        "title": "Angular Width Deg",
+                        "type": "number"
+                      }
+                    },
+                    "title": "Smooth",
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "工作台操作及实际执行状态"
+          }
+        }
+      }
+    },
+    "/api/v1/workbenches/{project_id}/tools/set_cross_section": {
+      "post": {
+        "operationId": "set_cross_section",
+        "description": "设置从上面看的形状：circle圆、heart爱心、triangle三角、square正方、rectangle长方、pentagon五边、hexagon六边、oval椭圆、star星、flower花瓣、teardrop水滴、custom自定义。part或高度区间可只改瓶口等部位，未提供时改变整体；roundness 0尖角到1圆角，aspect_ratio宽深比，lobes控制星角或花瓣数，rotation_deg方向。custom使用至少3个角度递增的极坐标控制点points，radius_ratio .2–1。不会重置高度和竖向轮廓。 返回 pending 后由打开的工作台执行，收到 applied 才能确认完成。",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "expected_revision",
+                  "client_request_id",
+                  "arguments"
+                ],
+                "properties": {
+                  "expected_revision": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "client_request_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "arguments": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "start_height_ratio": {
+                        "anyOf": [
+                          {
+                            "maximum": 1,
+                            "minimum": 0,
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Start Height Ratio"
+                      },
+                      "end_height_ratio": {
+                        "anyOf": [
+                          {
+                            "maximum": 1,
+                            "minimum": 0,
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "End Height Ratio"
+                      },
+                      "part": {
+                        "anyOf": [
+                          {
+                            "enum": [
+                              "whole",
+                              "mouth",
+                              "neck",
+                              "shoulder",
+                              "belly",
+                              "base",
+                              "upper",
+                              "middle",
+                              "lower"
+                            ],
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Part"
+                      },
+                      "shape": {
+                        "anyOf": [
+                          {
+                            "enum": [
+                              "circle",
+                              "heart",
+                              "triangle",
+                              "square",
+                              "rectangle",
+                              "pentagon",
+                              "hexagon",
+                              "oval",
+                              "star",
+                              "flower",
+                              "teardrop",
+                              "custom"
+                            ],
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Shape"
+                      },
+                      "roundness": {
+                        "anyOf": [
+                          {
+                            "maximum": 1,
+                            "minimum": 0,
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Roundness"
+                      },
+                      "rotation_deg": {
+                        "anyOf": [
+                          {
+                            "maximum": 180,
+                            "minimum": -180,
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Rotation Deg"
+                      },
+                      "aspect_ratio": {
+                        "anyOf": [
+                          {
+                            "maximum": 2.5,
+                            "minimum": 0.4,
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Aspect Ratio"
+                      },
+                      "lobes": {
+                        "anyOf": [
+                          {
+                            "maximum": 8,
+                            "minimum": 3,
+                            "type": "integer"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Lobes"
+                      },
+                      "points": {
+                        "anyOf": [
+                          {
+                            "items": {
+                              "$ref": "#/components/schemas/PolarPoint"
+                            },
+                            "maxItems": 32,
+                            "minItems": 3,
+                            "type": "array"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Points"
+                      }
+                    },
+                    "title": "CrossSectionChange",
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "工作台操作及实际执行状态"
+          }
+        }
+      }
+    },
+    "/api/v1/workbenches/{project_id}/tools/set_material": {
+      "post": {
+        "operationId": "set_material",
+        "description": "择土：选择泥料 terracotta 赤陶泥、cream 白瓷泥、brown 紫砂泥、charcoal 黑陶泥；光泽 0–100。釉色不要用这个工具，用 set_glaze。 返回 pending 后由打开的工作台执行，收到 applied 才能确认完成。",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "expected_revision",
+                  "client_request_id",
+                  "arguments"
+                ],
+                "properties": {
+                  "expected_revision": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "client_request_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "arguments": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "material": {
+                        "anyOf": [
+                          {
+                            "enum": [
+                              "terracotta",
+                              "cream",
+                              "celadon",
+                              "blue",
+                              "brown",
+                              "charcoal"
+                            ],
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Material"
+                      },
+                      "gloss": {
+                        "anyOf": [
+                          {
+                            "maximum": 100,
+                            "minimum": 0,
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Gloss"
+                      }
+                    },
+                    "title": "MaterialChange",
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "工作台操作及实际执行状态"
+          }
+        }
+      }
+    },
+    "/api/v1/workbenches/{project_id}/tools/set_glaze": {
+      "post": {
+        "operationId": "set_glaze",
+        "description": "施釉：glaze 釉色 none 素烧不施釉、yingqing 影青、tianqing 天青、fenqing 粉青、douqing 豆青、yuebai 月白、tianbai 甜白、jilan 霁蓝、jihong 霁红、wujin 乌金；pattern 纹样 plain 素面、cloud 云纹、lotus 缠枝莲、wave 海水；ink 纹色 cobalt 青花、copper 釉里红、gold 描金、ink 墨彩；crackle 是否开片；gloss 光泽 0 哑光到 100 亮釉。只填需要改变的项。 返回 pending 后由打开的工作台执行，收到 applied 才能确认完成。",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "expected_revision",
+                  "client_request_id",
+                  "arguments"
+                ],
+                "properties": {
+                  "expected_revision": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "client_request_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "arguments": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "glaze": {
+                        "anyOf": [
+                          {
+                            "enum": [
+                              "none",
+                              "yingqing",
+                              "tianqing",
+                              "fenqing",
+                              "douqing",
+                              "yuebai",
+                              "tianbai",
+                              "jilan",
+                              "jihong",
+                              "wujin"
+                            ],
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Glaze"
+                      },
+                      "pattern": {
+                        "anyOf": [
+                          {
+                            "enum": [
+                              "plain",
+                              "cloud",
+                              "lotus",
+                              "wave"
+                            ],
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Pattern"
+                      },
+                      "ink": {
+                        "anyOf": [
+                          {
+                            "enum": [
+                              "cobalt",
+                              "copper",
+                              "gold",
+                              "ink"
+                            ],
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Ink"
+                      },
+                      "crackle": {
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Crackle"
+                      },
+                      "gloss": {
+                        "anyOf": [
+                          {
+                            "maximum": 100,
+                            "minimum": 0,
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Gloss"
+                      }
+                    },
+                    "title": "GlazeChange",
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "工作台操作及实际执行状态"
+          }
+        }
+      }
+    },
+    "/api/v1/workbenches/{project_id}/tools/set_wheel": {
+      "post": {
+        "operationId": "set_wheel",
+        "description": "启动或暂停转盘，speed_rpm 单位转/分钟。 返回 pending 后由打开的工作台执行，收到 applied 才能确认完成。",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "expected_revision",
+                  "client_request_id",
+                  "arguments"
+                ],
+                "properties": {
+                  "expected_revision": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "client_request_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "arguments": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "rotating": {
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Rotating"
+                      },
+                      "speed_rpm": {
+                        "anyOf": [
+                          {
+                            "maximum": 60,
+                            "minimum": 5,
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Speed Rpm"
+                      }
+                    },
+                    "title": "WheelChange",
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "工作台操作及实际执行状态"
+          }
+        }
+      }
+    },
+    "/api/v1/workbenches/{project_id}/tools/set_view": {
+      "post": {
+        "operationId": "set_view",
+        "description": "切换 front 正面、top 俯视、perspective 透视，或设置缩放百分比。 返回 pending 后由打开的工作台执行，收到 applied 才能确认完成。",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "expected_revision",
+                  "client_request_id",
+                  "arguments"
+                ],
+                "properties": {
+                  "expected_revision": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "client_request_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "arguments": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "direction": {
+                        "anyOf": [
+                          {
+                            "enum": [
+                              "front",
+                              "top",
+                              "perspective"
+                            ],
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Direction"
+                      },
+                      "zoom_percent": {
+                        "anyOf": [
+                          {
+                            "maximum": 190,
+                            "minimum": 57,
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Zoom Percent"
+                      }
+                    },
+                    "title": "ViewChange",
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "工作台操作及实际执行状态"
+          }
+        }
+      }
+    },
+    "/api/v1/workbenches/{project_id}/tools/undo": {
+      "post": {
+        "operationId": "undo",
+        "description": "撤销一次修改。 返回 pending 后由打开的工作台执行，收到 applied 才能确认完成。",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "expected_revision",
+                  "client_request_id",
+                  "arguments"
+                ],
+                "properties": {
+                  "expected_revision": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "client_request_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "arguments": {
+                    "additionalProperties": false,
+                    "properties": {},
+                    "title": "Empty",
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "工作台操作及实际执行状态"
+          }
+        }
+      }
+    },
+    "/api/v1/workbenches/{project_id}/tools/redo": {
+      "post": {
+        "operationId": "redo",
+        "description": "恢复一次撤销。 返回 pending 后由打开的工作台执行，收到 applied 才能确认完成。",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "expected_revision",
+                  "client_request_id",
+                  "arguments"
+                ],
+                "properties": {
+                  "expected_revision": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "client_request_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "arguments": {
+                    "additionalProperties": false,
+                    "properties": {},
+                    "title": "Empty",
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "工作台操作及实际执行状态"
+          }
+        }
+      }
+    },
+    "/api/v1/workbenches/{project_id}/tools/save_project": {
+      "post": {
+        "operationId": "save_project",
+        "description": "把当前工程保存到后台，可设置作品名称。 返回 pending 后由打开的工作台执行，收到 applied 才能确认完成。",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "expected_revision",
+                  "client_request_id",
+                  "arguments"
+                ],
+                "properties": {
+                  "expected_revision": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "client_request_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "arguments": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "name": {
+                        "anyOf": [
+                          {
+                            "maxLength": 40,
+                            "minLength": 1,
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Name"
+                      }
+                    },
+                    "title": "SaveProject",
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "工作台操作及实际执行状态"
+          }
+        }
+      }
+    },
+    "/api/v1/workbenches/{project_id}/tools/export_artifact": {
+      "post": {
+        "operationId": "export_artifact",
+        "description": "在当前工作台生成并下载 PNG 图片、OBJ 三维模型或 JSON 工程文件。 返回 pending 后由打开的工作台执行，收到 applied 才能确认完成。",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "sessionToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "expected_revision",
+                  "client_request_id",
+                  "arguments"
+                ],
+                "properties": {
+                  "expected_revision": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "client_request_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "arguments": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "format": {
+                        "enum": [
+                          "png",
+                          "obj",
+                          "json"
+                        ],
+                        "title": "Format",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "format"
+                    ],
+                    "title": "ExportArtifact",
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "工作台操作及实际执行状态"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ControlPoint": {
+        "additionalProperties": false,
+        "properties": {
+          "height_ratio": {
+            "maximum": 1,
+            "minimum": 0,
+            "title": "Height Ratio",
+            "type": "number"
+          },
+          "radius_cm": {
+            "maximum": 17.4,
+            "minimum": 1.92,
+            "title": "Radius Cm",
+            "type": "number"
+          }
+        },
+        "required": [
+          "height_ratio",
+          "radius_cm"
+        ],
+        "title": "ControlPoint",
+        "type": "object"
+      },
+      "PolarPoint": {
+        "additionalProperties": false,
+        "properties": {
+          "angle_deg": {
+            "exclusiveMaximum": 360,
+            "minimum": 0,
+            "title": "Angle Deg",
+            "type": "number"
+          },
+          "radius_ratio": {
+            "maximum": 1,
+            "minimum": 0.2,
+            "title": "Radius Ratio",
+            "type": "number"
+          }
+        },
+        "required": [
+          "angle_deg",
+          "radius_ratio"
+        ],
+        "title": "PolarPoint",
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "sessionToken": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Session-Token"
+      }
+    }
+  }
+}

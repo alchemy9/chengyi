@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>承艺 · 流程测试</title>
+<style>
+  body { margin: 0; font: 13px/1.6 ui-monospace, Menlo, monospace; background: #0b1213; color: #ddd; }
+  iframe { position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; border: 0; display: block; }
+  pre { position: fixed; right: 0; bottom: 0; z-index: 2; max-width: 46vw; max-height: 60vh; overflow: auto; margin: 0; padding: 10px 14px; white-space: pre-wrap; font-size: 11px; background: rgba(0,0,0,.7); pointer-events: none; }
+  .pass { color: #8fd18f; } .fail { color: #ff8a80; }
+</style>
+</head>
+<body>
+<!-- 自动走一遍：序章 → 过场 → 地图 → 近景切换 → 篇章 → 工作台（五步手动 + AI）→ 入窑 → 分享。
+     用后台启动时测联网的 Agent 路径；用 tools/serve.py 预览时测本机规则。 -->
+<pre id="out">RUNNING</pre>
+<iframe id="f"></iframe>
+<script type="module">
+const out = document.getElementById('out');
+if (location.search.includes('hide')) out.style.display = 'none';
+const lines = [];
+let pass = 0, fail = 0;
+const log = (ok, msg) => { ok ? pass++ : fail++; lines.push(`${ok ? 'PASS' : 'FAIL'}  ${msg}`); out.textContent = lines.join('\n'); };
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const f = document.getElementById('f');
+try { localStorage.clear(); } catch {}
+// 无界面浏览器在“虚拟时间”下几乎不出帧，这里给被测页面注入基于定时器的 rAF，只用于测试
+const html = await (await fetch('../index.html')).text();
+const poly = `<base href="${new URL('../', location.href)}"><script>
+  window.requestAnimationFrame = (cb) => setTimeout(() => cb(performance.now()), 16);
+  window.cancelAnimationFrame = (id) => clearTimeout(id);
+<\/script>`;
+f.srcdoc = html.replace('<head>', '<head>' + poly);
+await new Promise((r) => f.addEventListener('load', r, { once: true }));
+const w = f.contentWindow, d = w.document;
+const $ = (s) => d.querySelector(s);
+const until = async (fn, ms = 15000, step = 100) => { const t0 = performance.now(); while (performance.now() - t0 < ms) { try { if (fn()) return true; } catch {} await sleep(step); } return false; };
+
+try {
+  await until(() => w.chengyi);
+  const app = w.chengyi;
+  log(app.scene === 'prologue', '打开后停留在序章，不自动跳走');
+  await sleep(1500);
+  log(app.scene === 'prologue', '1.5 秒后仍在序章');
+  log(await until(() => $('#enter-guide').classList.contains('on'), 9000), '叙事结束后出现「寻光入境」引导');
+  $('#btn-enter').click();
+  $('#btn-enter').click();
+  log(app.scene === 'entering', '点击后进入过场（重复点击不重复触发）');
+  log(await until(() => app.scene === 'map', 20000), '过场结束后进入地图');
+  const world = $('#map-world');
+  log(/scale/.test(world.style.transform), '地图有缩放变换');
+
+  // 地图缩放：滚轮
+  const vp = $('#map-viewport');
+  const s0 = world.style.transform;
+  vp.dispatchEvent(new w.WheelEvent('wheel', { deltaY: -400, clientX: 700, clientY: 450, bubbles: true, cancelable: true }));
+  log(await until(() => world.style.transform !== s0, 8000), '滚轮可缩放地图');
+
+  // 点青瓷进入近景
+  $('.map-item[data-id="celadon"]').click();
+  log(await until(() => app.scene === 'object', 3000), '点击青瓷进入器物近景');
+  log(await until(() => $('#co-name').textContent === '青瓷云纹瓶' && !d.querySelector('body > img[style*="fixed"]'), 20000), '近景中央为青瓷云纹瓶，飞入动画结束');
+  log(!$('#btn-create').disabled, '青瓷的创作入口可用');
+  $('#co-hit-right').click();
+  await sleep(150);
+  $('#co-hit-right').click(); // 切换中再次点击：排队到最新目标
+  await until(() => $('#co-name').textContent.startsWith('编篮'), 30000);
+  log($('#co-name').textContent.startsWith('编篮'), `连续点击右侧两次后到达第二件（${$('#co-name').textContent}）`);
+  log($('#btn-create').disabled, '未开放器物的创作入口不可用');
+  $('#co-hit-left').click();
+  await until(() => $('#co-name').textContent.startsWith('花丝') && !$('#co-info').classList.contains('fade'), 30000);
+  $('#co-hit-left').click();
+  log(await until(() => $('#co-name').textContent === '青瓷云纹瓶' && !$('#co-info').classList.contains('fade'), 30000), '切回青瓷');
+  const solids = [...d.querySelectorAll('.co-solid:not(.co-ghost)')].filter((e) => +e.style.opacity > 0.5);
+  log(solids.length === 1, `任一时刻只有一个中央实体（${solids.length}）`);
+
+  // 返回地图，视角保留
+  $('#btn-back').click();
+  log(await until(() => app.scene === 'map', 2000), '返回地图');
+  await sleep(1500);
+  $('.map-item[data-id="celadon"]').click();
+  await until(() => app.scene === 'object' && !$('#btn-create').disabled, 20000);
+  await sleep(500);
+  $('#btn-create').click();
+  log(await until(() => app.scene === 'chapter', 2000), '「与 AI 开始创作」进入陶瓷篇章');
+  await app.modules.chapter.preload();
+  // 滚轮推进
+  const root = $('#scene-chapter');
+  for (let i = 0; i < 20; i++) root.dispatchEvent(new w.WheelEvent('wheel', { deltaY: 120, bubbles: true, cancelable: true }));
+  await until(() => $('#ch-hint').classList.contains('off'), 5000);
+  await sleep(1200);
+  log($('#brand-name').textContent === '壹' || $('#brand-name').textContent === '贰', `滚动后显示章节序号（${$('#brand-name').textContent}）`);
+  for (let i = 0; i < 20; i++) root.dispatchEvent(new w.WheelEvent('wheel', { deltaY: -120, bubbles: true, cancelable: true }));
+  await sleep(2500);
+  log($('#brand-name').textContent === '壹', '向上滚动可回看');
+  app.modules.chapter.seek(1);
+  await until(() => $('#ch-end').classList.contains('on'), 8000);
+  log($('#ch-end').classList.contains('on'), '篇章末尾出现进入工作台的按钮');
+  $('#btn-to-workbench').click();
+  log(await until(() => app.scene === 'workbench', 5000), '进入工作台');
+  log(await until(() => d.querySelector('#wb-panel .wb-card'), 30000), '工作台打开在「择土」，坯体与面板加载完成');
+  log(d.querySelectorAll('#wb-steps .wb-step').length === 5 && $('#wb-steps').textContent.replace(/\s/g, '') === '择土练泥成形施釉入窑', '左侧五步：择土 · 练泥 · 成形 · 施釉 · 入窑');
+  await until(() => !/正在连接/.test($('#ai-status').textContent), 15000);
+  const online = /已连接/.test($('#ai-status').textContent);
+  lines.push(`      AI：${$('#ai-status').textContent}`);
+  const pd = () => { try { return JSON.parse(w.localStorage.getItem('chengyi3.pottery')) || {}; } catch { return {}; } };
+
+  // 择土 → 练泥 → 成形 → 施釉（手动）
+  d.querySelector('[data-clay="terracotta"]').click();
+  log(await until(() => pd().material === 'terracotta', 3000), '择土：选赤陶泥，草稿已保存');
+  d.querySelector('[data-step="clay"]').click();
+  d.querySelector('[data-form="bowl"]').click();
+  log(await until(() => pd().preset === 'bowl' && pd().height === 12, 3000), '练泥：换成茶碗坯');
+  $('#wb-undo').click();
+  log(await until(() => pd().preset !== 'bowl', 8000), `撤销生效（${online ? '后台历史' : '本机历史'}）`);
+  $('#wb-redo').click();
+  log(await until(() => pd().preset === 'bowl', 8000), '重做生效');
+  d.querySelector('[data-step="form"]').click();
+  d.querySelector('[data-outline="heart"]').click();
+  log(await until(() => pd().cross_section?.shape === 'heart' && !$('#wb-top').hidden, 3000), '成形：俯视形状改为爱心，打开俯视小窗');
+  d.querySelector('[data-step="glaze"]').click();
+  d.querySelector('[data-glaze="tianqing"]').click();
+  log(await until(() => pd().glaze === 'tianqing', 3000), '施釉：天青釉');
+  d.querySelector('[data-pattern="cloud"]').click();
+  log(await until(() => pd().pattern === 'cloud' && !d.querySelector('[data-ink]').disabled, 3000), '施釉：云纹，纹色可选');
+
+  // 承艺 AI（联网走后台规则 / Agent，离线走本机规则；两种都能理解这两句）
+  const ask = async (text) => { const n = d.querySelectorAll('.ai-msg').length; $('#ai-input').value = text; $('#ai-form').requestSubmit(); await until(() => d.querySelectorAll('.ai-msg').length >= n + 2 && !$('#scene-workbench').classList.contains('ai-busy'), 30000); };
+  await ask('施粉青釉');
+  log(await until(() => pd().glaze === 'fenqing', 5000), `AI：「施粉青釉」已执行（${[...d.querySelectorAll('.ai-msg')].pop().textContent.slice(0, 30)}）`);
+  await ask('加缠枝莲纹');
+  log(await until(() => pd().pattern === 'lotus', 5000), 'AI：「加缠枝莲纹」已执行');
+  await ask('做个茶碗');
+  log(await until(() => pd().preset === 'bowl' && pd().cross_section?.shape === 'circle', 5000), 'AI：「做个茶碗」重置为圆形茶碗');
+  if (!online) {
+    const before = JSON.stringify(pd());
+    await ask('今天天气怎么样');
+    log(JSON.stringify(pd()) === before, '无关的话不乱改作品');
+  }
+  const beforeInspire = JSON.stringify(pd());
+  $('#ai-inspire').click();
+  log(await until(() => JSON.stringify(pd()) !== beforeInspire, 3000), '「给我灵感」换上一组搭配');
+
+  // 入窑 → 分享
+  app.setReduced(true);
+  d.querySelector('[data-step="kiln"]').click();
+  await until(() => d.querySelector('#wb-name'), 2000);
+  $('#wb-name').value = '测试之器';
+  d.querySelector('[data-fire]').click();
+  log(await until(() => app.scene === 'share', 30000), '入窑后进入分享页');
+  await sleep(300);
+  log($('#share-img').src.startsWith('data:image/jpeg') && $('#share-img').src.length > 50000, `生成分享图（${Math.round($('#share-img').src.length / 1024)} KB）`);
+  log($('#share-name').textContent === '测试之器', '分享页显示作品名');
+  app.setReduced(false);
+} catch (e) {
+  log(false, '异常：' + (e && e.stack || e));
+}
+lines.unshift(`RESULT ${pass}/${pass + fail}`);
+out.textContent = lines.join('\n');
+document.title = `RESULT ${pass}/${pass + fail}`;
+</script>
+</body>
+</html>

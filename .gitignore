@@ -1,0 +1,14 @@
+.DS_Store
+__pycache__/
+*.pyc
+.venv/
+
+# 后端：密钥、账号、数据库、日志、自带运行环境都只留在本机
+server/.env
+server/.local-credentials.txt
+server/后台账号.txt
+server/data/
+server/runtime/
+server/分享文件/
+server/.pytest_cache/
+.pytest_cache/

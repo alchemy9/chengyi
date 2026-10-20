@@ -1,0 +1,3995 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "承艺 · 非遗讲解与陶艺工作台后端",
+    "description": "非遗资料、大模型讲解与问答、陶艺工作台 Agent；同时托管承艺网页。",
+    "version": "0.3.0"
+  },
+  "paths": {
+    "/api/v1/workbenches/tools/openapi.json": {
+      "get": {
+        "tags": [
+          "陶艺工作台"
+        ],
+        "summary": "Tools Schema",
+        "operationId": "tools_schema_api_v1_workbenches_tools_openapi_json_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workbenches": {
+      "post": {
+        "tags": [
+          "陶艺工作台"
+        ],
+        "summary": "Create",
+        "operationId": "create_api_v1_workbenches_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWorkbench"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workbenches/{project_id}": {
+      "get": {
+        "tags": [
+          "陶艺工作台"
+        ],
+        "summary": "Read",
+        "operationId": "read_api_v1_workbenches__project_id__get",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "x-session-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "X-Session-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workbenches/{project_id}/sync": {
+      "post": {
+        "tags": [
+          "陶艺工作台"
+        ],
+        "summary": "Sync",
+        "operationId": "sync_api_v1_workbenches__project_id__sync_post",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "x-session-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "X-Session-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SyncWorkbench"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workbenches/{project_id}/cancel": {
+      "post": {
+        "tags": [
+          "陶艺工作台"
+        ],
+        "summary": "Cancel",
+        "operationId": "cancel_api_v1_workbenches__project_id__cancel_post",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "x-session-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "X-Session-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workbenches/{project_id}/commands": {
+      "post": {
+        "tags": [
+          "陶艺工作台"
+        ],
+        "summary": "Command",
+        "operationId": "command_api_v1_workbenches__project_id__commands_post",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "x-session-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "X-Session-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkbenchRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workbenches/{project_id}/tools/{tool_name}": {
+      "post": {
+        "tags": [
+          "陶艺工作台"
+        ],
+        "summary": "Tool",
+        "operationId": "tool_api_v1_workbenches__project_id__tools__tool_name__post",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "tool_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Tool Name"
+            }
+          },
+          {
+            "name": "x-session-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "X-Session-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ToolRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workbenches/{project_id}/commands/{command_id}/receipt": {
+      "post": {
+        "tags": [
+          "陶艺工作台"
+        ],
+        "summary": "Receipt",
+        "operationId": "receipt_api_v1_workbenches__project_id__commands__command_id__receipt_post",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "command_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Command Id"
+            }
+          },
+          {
+            "name": "x-session-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "X-Session-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkbenchReceipt"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workbenches/{project_id}/speech": {
+      "post": {
+        "tags": [
+          "陶艺工作台"
+        ],
+        "summary": "Speak",
+        "operationId": "speak_api_v1_workbenches__project_id__speech_post",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "x-session-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "X-Session-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpeakRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/voice/status": {
+      "get": {
+        "tags": [
+          "语音"
+        ],
+        "summary": "Voice Status",
+        "operationId": "voice_status_api_v1_voice_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_SpeechStatus_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "运行状态"
+        ],
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_HealthOutput_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/items": {
+      "get": {
+        "tags": [
+          "物品"
+        ],
+        "summary": "Items",
+        "operationId": "items_api_v1_items_get",
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 100,
+              "default": "",
+              "title": "Search"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 80,
+              "default": "",
+              "title": "Category"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Page Size"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ItemPage_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/items/{item_id}": {
+      "get": {
+        "tags": [
+          "物品"
+        ],
+        "summary": "Item Detail",
+        "operationId": "item_detail_api_v1_items__item_id__get",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ItemPublic_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions": {
+      "post": {
+        "tags": [
+          "会话"
+        ],
+        "summary": "New Session",
+        "operationId": "new_session_api_v1_sessions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_SessionCreated_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions/{session_id}": {
+      "get": {
+        "tags": [
+          "会话"
+        ],
+        "summary": "Read Session",
+        "operationId": "read_session_api_v1_sessions__session_id__get",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "x-session-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "X-Session-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_SessionState_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions/{session_id}/ui/state": {
+      "get": {
+        "tags": [
+          "界面联动"
+        ],
+        "summary": "Read Ui State",
+        "operationId": "read_ui_state_api_v1_sessions__session_id__ui_state_get",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "x-session-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "X-Session-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_UIState_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions/{session_id}/ui/context": {
+      "post": {
+        "tags": [
+          "界面联动"
+        ],
+        "summary": "Update Ui Context",
+        "operationId": "update_ui_context_api_v1_sessions__session_id__ui_context_post",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "x-session-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "X-Session-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UIContextInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_UIState_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions/{session_id}/ui/plan": {
+      "post": {
+        "tags": [
+          "界面联动"
+        ],
+        "summary": "Plan Ui",
+        "operationId": "plan_ui_api_v1_sessions__session_id__ui_plan_post",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "x-session-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "X-Session-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UIPlanInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_UIPlanResult_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions/{session_id}/ui/cancel": {
+      "post": {
+        "tags": [
+          "界面联动"
+        ],
+        "summary": "Cancel Ui Actions",
+        "operationId": "cancel_ui_actions_api_v1_sessions__session_id__ui_cancel_post",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "x-session-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "X-Session-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UICancelInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_UIState_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions/{session_id}/ui/actions/{action_id}/receipt": {
+      "post": {
+        "tags": [
+          "界面联动"
+        ],
+        "summary": "Acknowledge Ui",
+        "operationId": "acknowledge_ui_api_v1_sessions__session_id__ui_actions__action_id__receipt_post",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "action_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Action Id"
+            }
+          },
+          {
+            "name": "x-session-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "X-Session-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UIReceiptInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_UIReceiptResult_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions/{session_id}/transcribe": {
+      "post": {
+        "tags": [
+          "语音"
+        ],
+        "summary": "Recognize",
+        "operationId": "recognize_api_v1_sessions__session_id__transcribe_post",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "x-session-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "X-Session-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_VoiceTranscription_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "audio/wav": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions/{session_id}/interact": {
+      "post": {
+        "tags": [
+          "交互"
+        ],
+        "summary": "Interact",
+        "operationId": "interact_api_v1_sessions__session_id__interact_post",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "x-session-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "X-Session-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InteractionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Reply_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions/{session_id}/interact/stream": {
+      "post": {
+        "tags": [
+          "交互"
+        ],
+        "summary": "Interact Stream",
+        "operationId": "interact_stream_api_v1_sessions__session_id__interact_stream_post",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "x-session-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "X-Session-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InteractionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "SSE：start、delta、reset、result 或 error，详见前端对接说明。",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions/{session_id}/interact/voice-stream": {
+      "post": {
+        "tags": [
+          "语音"
+        ],
+        "summary": "Voice Interact",
+        "operationId": "voice_interact_api_v1_sessions__session_id__interact_voice_stream_post",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "audio_format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "mp3",
+                "pcm"
+              ],
+              "type": "string",
+              "default": "mp3",
+              "title": "Audio Format"
+            }
+          },
+          {
+            "name": "x-session-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "X-Session-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InteractionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "SSE：文字事件 + 按句 audio + speech_error + voice_done 耗时。",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/login": {
+      "post": {
+        "tags": [
+          "管理登录"
+        ],
+        "summary": "Login",
+        "operationId": "login_api_v1_admin_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_LoginOutput_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/model": {
+      "get": {
+        "tags": [
+          "大模型接入"
+        ],
+        "summary": "Read Model",
+        "operationId": "read_model_api_v1_admin_model_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ModelStatus_"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "大模型接入"
+        ],
+        "summary": "Configure Model",
+        "operationId": "configure_model_api_v1_admin_model_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModelConfigInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ModelStatus_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/model/test": {
+      "post": {
+        "tags": [
+          "大模型接入"
+        ],
+        "summary": "Test Model",
+        "operationId": "test_model_api_v1_admin_model_test_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ModelProbe_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/speech": {
+      "get": {
+        "tags": [
+          "语音"
+        ],
+        "summary": "Read Speech",
+        "operationId": "read_speech_api_v1_admin_speech_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_SpeechStatus_"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "语音"
+        ],
+        "summary": "Configure Speech",
+        "operationId": "configure_speech_api_v1_admin_speech_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpeechConfigInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_SpeechStatus_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/speech/test": {
+      "post": {
+        "tags": [
+          "语音"
+        ],
+        "summary": "Test Speech",
+        "operationId": "test_speech_api_v1_admin_speech_test_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_SpeechProbe_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/items": {
+      "get": {
+        "tags": [
+          "管理"
+        ],
+        "summary": "Admin Items",
+        "operationId": "admin_items_api_v1_admin_items_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_list_ItemAdmin__"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "管理"
+        ],
+        "summary": "Add Item",
+        "operationId": "add_item_api_v1_admin_items_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ItemInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ItemAdmin_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/items/{item_id}": {
+      "put": {
+        "tags": [
+          "管理"
+        ],
+        "summary": "Update Item",
+        "operationId": "update_item_api_v1_admin_items__item_id__put",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ItemInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ItemAdmin_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Action": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "highlight",
+              "play_animation",
+              "show_steps"
+            ],
+            "title": "Type"
+          },
+          "target": {
+            "type": "string",
+            "title": "Target"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "target"
+        ],
+        "title": "Action"
+      },
+      "ArtifactReceipt": {
+        "properties": {
+          "format": {
+            "type": "string",
+            "enum": [
+              "png",
+              "obj",
+              "json"
+            ],
+            "title": "Format"
+          },
+          "filename": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Filename"
+          },
+          "bytes": {
+            "type": "integer",
+            "maximum": 50000000.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Bytes"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "format",
+          "filename",
+          "bytes"
+        ],
+        "title": "ArtifactReceipt"
+      },
+      "CreateWorkbench": {
+        "properties": {
+          "document": {
+            "$ref": "#/components/schemas/Document"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "document"
+        ],
+        "title": "CreateWorkbench"
+      },
+      "CrossSection": {
+        "properties": {
+          "shape": {
+            "type": "string",
+            "enum": [
+              "circle",
+              "heart",
+              "triangle",
+              "square",
+              "rectangle",
+              "pentagon",
+              "hexagon",
+              "oval",
+              "star",
+              "flower",
+              "teardrop",
+              "custom"
+            ],
+            "title": "Shape",
+            "default": "circle"
+          },
+          "roundness": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Roundness",
+            "default": 0.2
+          },
+          "rotation_deg": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": -180.0,
+            "title": "Rotation Deg",
+            "default": 0
+          },
+          "aspect_ratio": {
+            "type": "number",
+            "maximum": 2.5,
+            "minimum": 0.4,
+            "title": "Aspect Ratio",
+            "default": 1
+          },
+          "lobes": {
+            "type": "integer",
+            "maximum": 8.0,
+            "minimum": 3.0,
+            "title": "Lobes",
+            "default": 5
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/PolarPoint"
+            },
+            "type": "array",
+            "maxItems": 32,
+            "title": "Points"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "CrossSection"
+      },
+      "Document": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Name",
+            "default": "未命名的陶器"
+          },
+          "profile": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "maxItems": 96,
+            "minItems": 96,
+            "title": "Profile"
+          },
+          "height": {
+            "type": "number",
+            "maximum": 40.0,
+            "minimum": 8.0,
+            "title": "Height"
+          },
+          "material": {
+            "type": "string",
+            "enum": [
+              "terracotta",
+              "cream",
+              "celadon",
+              "blue",
+              "brown",
+              "charcoal"
+            ],
+            "title": "Material"
+          },
+          "gloss": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Gloss"
+          },
+          "preset": {
+            "type": "string",
+            "enum": [
+              "vase",
+              "jar",
+              "bowl",
+              "cup",
+              "yuhuchun"
+            ],
+            "title": "Preset"
+          },
+          "glaze": {
+            "type": "string",
+            "enum": [
+              "none",
+              "yingqing",
+              "tianqing",
+              "fenqing",
+              "douqing",
+              "yuebai",
+              "tianbai",
+              "jilan",
+              "jihong",
+              "wujin"
+            ],
+            "title": "Glaze",
+            "default": "none"
+          },
+          "pattern": {
+            "type": "string",
+            "enum": [
+              "plain",
+              "cloud",
+              "lotus",
+              "wave"
+            ],
+            "title": "Pattern",
+            "default": "plain"
+          },
+          "ink": {
+            "type": "string",
+            "enum": [
+              "cobalt",
+              "copper",
+              "gold",
+              "ink"
+            ],
+            "title": "Ink",
+            "default": "cobalt"
+          },
+          "crackle": {
+            "type": "boolean",
+            "title": "Crackle",
+            "default": false
+          },
+          "cross_section": {
+            "$ref": "#/components/schemas/CrossSection"
+          },
+          "section_bands": {
+            "items": {
+              "$ref": "#/components/schemas/SectionBand"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "title": "Section Bands"
+          },
+          "deformations": {
+            "items": {
+              "$ref": "#/components/schemas/LocalDeformation"
+            },
+            "type": "array",
+            "maxItems": 32,
+            "title": "Deformations"
+          },
+          "wheel": {
+            "$ref": "#/components/schemas/WheelState"
+          },
+          "view": {
+            "$ref": "#/components/schemas/ViewState"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "profile",
+          "height",
+          "material",
+          "gloss",
+          "preset"
+        ],
+        "title": "Document"
+      },
+      "Envelope_HealthOutput_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/HealthOutput"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "request_id"
+        ],
+        "title": "Envelope[HealthOutput]"
+      },
+      "Envelope_ItemAdmin_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ItemAdmin"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "request_id"
+        ],
+        "title": "Envelope[ItemAdmin]"
+      },
+      "Envelope_ItemPage_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ItemPage"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "request_id"
+        ],
+        "title": "Envelope[ItemPage]"
+      },
+      "Envelope_ItemPublic_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ItemPublic"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "request_id"
+        ],
+        "title": "Envelope[ItemPublic]"
+      },
+      "Envelope_LoginOutput_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LoginOutput"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "request_id"
+        ],
+        "title": "Envelope[LoginOutput]"
+      },
+      "Envelope_ModelProbe_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ModelProbe"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "request_id"
+        ],
+        "title": "Envelope[ModelProbe]"
+      },
+      "Envelope_ModelStatus_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ModelStatus"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "request_id"
+        ],
+        "title": "Envelope[ModelStatus]"
+      },
+      "Envelope_Reply_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Reply"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "request_id"
+        ],
+        "title": "Envelope[Reply]"
+      },
+      "Envelope_SessionCreated_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SessionCreated"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "request_id"
+        ],
+        "title": "Envelope[SessionCreated]"
+      },
+      "Envelope_SessionState_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SessionState"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "request_id"
+        ],
+        "title": "Envelope[SessionState]"
+      },
+      "Envelope_SpeechProbe_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SpeechProbe"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "request_id"
+        ],
+        "title": "Envelope[SpeechProbe]"
+      },
+      "Envelope_SpeechStatus_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SpeechStatus"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "request_id"
+        ],
+        "title": "Envelope[SpeechStatus]"
+      },
+      "Envelope_UIPlanResult_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/UIPlanResult"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "request_id"
+        ],
+        "title": "Envelope[UIPlanResult]"
+      },
+      "Envelope_UIReceiptResult_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/UIReceiptResult"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "request_id"
+        ],
+        "title": "Envelope[UIReceiptResult]"
+      },
+      "Envelope_UIState_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/UIState"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "request_id"
+        ],
+        "title": "Envelope[UIState]"
+      },
+      "Envelope_VoiceTranscription_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/VoiceTranscription"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "request_id"
+        ],
+        "title": "Envelope[VoiceTranscription]"
+      },
+      "Envelope_list_ItemAdmin__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/ItemAdmin"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "request_id"
+        ],
+        "title": "Envelope[list[ItemAdmin]]"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthOutput": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "llm_mode": {
+            "type": "string",
+            "title": "Llm Mode"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "version",
+          "llm_mode"
+        ],
+        "title": "HealthOutput"
+      },
+      "HotspotInput": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]{1,64}$",
+            "title": "Key"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 6000,
+            "minLength": 1,
+            "title": "Description"
+          },
+          "action_type": {
+            "type": "string",
+            "enum": [
+              "highlight",
+              "play_animation",
+              "show_steps"
+            ],
+            "title": "Action Type",
+            "default": "highlight"
+          },
+          "action_target": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Action Target"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "key",
+          "name",
+          "description",
+          "action_target"
+        ],
+        "title": "HotspotInput"
+      },
+      "InteractionInput": {
+        "properties": {
+          "event": {
+            "type": "string",
+            "enum": [
+              "explain",
+              "hotspot",
+              "ask"
+            ],
+            "title": "Event"
+          },
+          "item_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Item Id"
+          },
+          "hotspot_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hotspot Id"
+          },
+          "question": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Question"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "event"
+        ],
+        "title": "InteractionInput"
+      },
+      "ItemAdmin": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "region": {
+            "type": "string",
+            "title": "Region"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "introduction": {
+            "type": "string",
+            "title": "Introduction"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
+          "is_demo": {
+            "type": "boolean",
+            "title": "Is Demo"
+          },
+          "hotspots": {
+            "items": {
+              "$ref": "#/components/schemas/HotspotInput"
+            },
+            "type": "array",
+            "title": "Hotspots"
+          },
+          "published": {
+            "type": "boolean",
+            "title": "Published"
+          },
+          "knowledge": {
+            "items": {
+              "$ref": "#/components/schemas/KnowledgeInput"
+            },
+            "type": "array",
+            "title": "Knowledge"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "category",
+          "region",
+          "summary",
+          "introduction",
+          "image_url",
+          "is_demo",
+          "hotspots",
+          "published",
+          "knowledge"
+        ],
+        "title": "ItemAdmin"
+      },
+      "ItemInput": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]{1,64}$",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "category": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Category"
+          },
+          "region": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Region",
+            "default": ""
+          },
+          "summary": {
+            "type": "string",
+            "maxLength": 1500,
+            "minLength": 1,
+            "title": "Summary"
+          },
+          "introduction": {
+            "type": "string",
+            "maxLength": 12000,
+            "minLength": 1,
+            "title": "Introduction"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2083,
+                "minLength": 1,
+                "format": "uri"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
+          "published": {
+            "type": "boolean",
+            "title": "Published",
+            "default": false
+          },
+          "is_demo": {
+            "type": "boolean",
+            "title": "Is Demo",
+            "default": false
+          },
+          "hotspots": {
+            "items": {
+              "$ref": "#/components/schemas/HotspotInput"
+            },
+            "type": "array",
+            "maxItems": 30,
+            "title": "Hotspots"
+          },
+          "knowledge": {
+            "items": {
+              "$ref": "#/components/schemas/KnowledgeInput"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "title": "Knowledge"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "category",
+          "summary",
+          "introduction"
+        ],
+        "title": "ItemInput"
+      },
+      "ItemPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ItemPublic"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size"
+        ],
+        "title": "ItemPage"
+      },
+      "ItemPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "region": {
+            "type": "string",
+            "title": "Region"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "introduction": {
+            "type": "string",
+            "title": "Introduction"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
+          "is_demo": {
+            "type": "boolean",
+            "title": "Is Demo"
+          },
+          "hotspots": {
+            "items": {
+              "$ref": "#/components/schemas/HotspotInput"
+            },
+            "type": "array",
+            "title": "Hotspots"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "category",
+          "region",
+          "summary",
+          "introduction",
+          "image_url",
+          "is_demo",
+          "hotspots"
+        ],
+        "title": "ItemPublic"
+      },
+      "KnowledgeInput": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "content": {
+            "type": "string",
+            "maxLength": 12000,
+            "minLength": 1,
+            "title": "Content"
+          },
+          "source_name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Source Name"
+          },
+          "source_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2083,
+                "minLength": 1,
+                "format": "uri"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Url"
+          },
+          "reviewed": {
+            "type": "boolean",
+            "title": "Reviewed",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "title",
+          "content",
+          "source_name"
+        ],
+        "title": "KnowledgeInput"
+      },
+      "LocalDeformation": {
+        "properties": {
+          "start_height_ratio": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Start Height Ratio"
+          },
+          "end_height_ratio": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "End Height Ratio"
+          },
+          "angle_deg": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": -180.0,
+            "title": "Angle Deg"
+          },
+          "angular_width_deg": {
+            "type": "number",
+            "maximum": 360.0,
+            "minimum": 10.0,
+            "title": "Angular Width Deg",
+            "default": 90
+          },
+          "radius_delta_cm": {
+            "type": "number",
+            "maximum": 6.0,
+            "minimum": -6.0,
+            "title": "Radius Delta Cm",
+            "default": 0
+          },
+          "radius_scale_percent": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": -60.0,
+            "title": "Radius Scale Percent",
+            "default": 0
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "start_height_ratio",
+          "end_height_ratio",
+          "angle_deg"
+        ],
+        "title": "LocalDeformation"
+      },
+      "LoginInput": {
+        "properties": {
+          "username": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Username"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Password"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "LoginInput"
+      },
+      "LoginOutput": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "token_type": {
+            "type": "string",
+            "const": "bearer",
+            "title": "Token Type"
+          },
+          "expires_in": {
+            "type": "integer",
+            "title": "Expires In"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token",
+          "token_type",
+          "expires_in"
+        ],
+        "title": "LoginOutput"
+      },
+      "ModelConfigInput": {
+        "properties": {
+          "provider": {
+            "type": "string",
+            "enum": [
+              "chat_completions",
+              "dify"
+            ],
+            "title": "Provider",
+            "default": "chat_completions"
+          },
+          "api_base_url": {
+            "type": "string",
+            "maxLength": 2083,
+            "minLength": 1,
+            "format": "uri",
+            "title": "Api Base Url"
+          },
+          "model": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Model",
+            "default": ""
+          },
+          "api_key": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "password",
+                "writeOnly": true
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Key"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "api_base_url"
+        ],
+        "title": "ModelConfigInput"
+      },
+      "ModelProbe": {
+        "properties": {
+          "connected": {
+            "type": "boolean",
+            "title": "Connected"
+          },
+          "reply": {
+            "type": "string",
+            "title": "Reply"
+          },
+          "latency_ms": {
+            "type": "integer",
+            "title": "Latency Ms"
+          },
+          "usage": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Usage"
+          }
+        },
+        "type": "object",
+        "required": [
+          "connected",
+          "reply",
+          "latency_ms",
+          "usage"
+        ],
+        "title": "ModelProbe"
+      },
+      "ModelStatus": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "demo",
+              "live"
+            ],
+            "title": "Mode"
+          },
+          "provider": {
+            "type": "string",
+            "enum": [
+              "chat_completions",
+              "dify"
+            ],
+            "title": "Provider"
+          },
+          "api_base_url": {
+            "type": "string",
+            "title": "Api Base Url"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "key_configured": {
+            "type": "boolean",
+            "title": "Key Configured"
+          },
+          "verification": {
+            "type": "string",
+            "enum": [
+              "unverified",
+              "verified",
+              "failed"
+            ],
+            "title": "Verification"
+          },
+          "config_writable": {
+            "type": "boolean",
+            "title": "Config Writable"
+          },
+          "last_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "mode",
+          "provider",
+          "api_base_url",
+          "model",
+          "key_configured",
+          "verification",
+          "config_writable",
+          "last_error"
+        ],
+        "title": "ModelStatus"
+      },
+      "PolarPoint": {
+        "properties": {
+          "angle_deg": {
+            "type": "number",
+            "exclusiveMaximum": 360.0,
+            "minimum": 0.0,
+            "title": "Angle Deg"
+          },
+          "radius_ratio": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.2,
+            "title": "Radius Ratio"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "angle_deg",
+          "radius_ratio"
+        ],
+        "title": "PolarPoint"
+      },
+      "Reply": {
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          },
+          "message_id": {
+            "type": "string",
+            "title": "Message Id"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "demo",
+              "live",
+              "fallback"
+            ],
+            "title": "Mode"
+          },
+          "actions": {
+            "items": {
+              "$ref": "#/components/schemas/Action"
+            },
+            "type": "array",
+            "title": "Actions"
+          },
+          "session": {
+            "$ref": "#/components/schemas/SessionState"
+          },
+          "usage": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Usage"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SourceReference"
+            },
+            "type": "array",
+            "title": "Sources"
+          },
+          "suggestions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Suggestions"
+          },
+          "warning": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Warning"
+          },
+          "provider_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "request_id",
+          "message_id",
+          "text",
+          "mode",
+          "actions",
+          "session",
+          "usage",
+          "sources",
+          "suggestions",
+          "warning",
+          "provider_error"
+        ],
+        "title": "Reply"
+      },
+      "SectionBand": {
+        "properties": {
+          "shape": {
+            "type": "string",
+            "enum": [
+              "circle",
+              "heart",
+              "triangle",
+              "square",
+              "rectangle",
+              "pentagon",
+              "hexagon",
+              "oval",
+              "star",
+              "flower",
+              "teardrop",
+              "custom"
+            ],
+            "title": "Shape",
+            "default": "circle"
+          },
+          "roundness": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Roundness",
+            "default": 0.2
+          },
+          "rotation_deg": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": -180.0,
+            "title": "Rotation Deg",
+            "default": 0
+          },
+          "aspect_ratio": {
+            "type": "number",
+            "maximum": 2.5,
+            "minimum": 0.4,
+            "title": "Aspect Ratio",
+            "default": 1
+          },
+          "lobes": {
+            "type": "integer",
+            "maximum": 8.0,
+            "minimum": 3.0,
+            "title": "Lobes",
+            "default": 5
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/PolarPoint"
+            },
+            "type": "array",
+            "maxItems": 32,
+            "title": "Points"
+          },
+          "start_height_ratio": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Start Height Ratio"
+          },
+          "end_height_ratio": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "End Height Ratio"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "start_height_ratio",
+          "end_height_ratio"
+        ],
+        "title": "SectionBand"
+      },
+      "SessionCreated": {
+        "properties": {
+          "session": {
+            "$ref": "#/components/schemas/SessionState"
+          },
+          "session_token": {
+            "type": "string",
+            "title": "Session Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session",
+          "session_token"
+        ],
+        "title": "SessionCreated"
+      },
+      "SessionInput": {
+        "properties": {
+          "item_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Item Id"
+          },
+          "audience": {
+            "type": "string",
+            "enum": [
+              "general",
+              "children",
+              "expert"
+            ],
+            "title": "Audience",
+            "default": "general"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "SessionInput"
+      },
+      "SessionState": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "current_item_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Item Id"
+          },
+          "current_hotspot_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Hotspot Id"
+          },
+          "audience": {
+            "type": "string",
+            "enum": [
+              "general",
+              "children",
+              "expert"
+            ],
+            "title": "Audience"
+          },
+          "turn_count": {
+            "type": "integer",
+            "title": "Turn Count"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "expires_at": {
+            "type": "string",
+            "title": "Expires At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "current_item_id",
+          "current_hotspot_id",
+          "audience",
+          "turn_count",
+          "revision",
+          "expires_at"
+        ],
+        "title": "SessionState"
+      },
+      "SourceReference": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "source_name": {
+            "type": "string",
+            "title": "Source Name"
+          },
+          "source_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Url"
+          },
+          "is_demo": {
+            "type": "boolean",
+            "title": "Is Demo"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "source_name",
+          "source_url",
+          "is_demo"
+        ],
+        "title": "SourceReference"
+      },
+      "SpeakRequest": {
+        "properties": {
+          "command_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Command Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "command_id"
+        ],
+        "title": "SpeakRequest"
+      },
+      "SpeechConfigInput": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": true
+          },
+          "api_key": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "password",
+                "writeOnly": true
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Key"
+          },
+          "voice": {
+            "type": "string",
+            "enum": [
+              "alex",
+              "benjamin",
+              "charles",
+              "david",
+              "anna",
+              "bella"
+            ],
+            "title": "Voice",
+            "default": "anna"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "SpeechConfigInput"
+      },
+      "SpeechProbe": {
+        "properties": {
+          "audio_base64": {
+            "type": "string",
+            "title": "Audio Base64"
+          },
+          "mime_type": {
+            "type": "string",
+            "title": "Mime Type"
+          },
+          "first_byte_ms": {
+            "type": "integer",
+            "title": "First Byte Ms"
+          },
+          "total_ms": {
+            "type": "integer",
+            "title": "Total Ms"
+          }
+        },
+        "type": "object",
+        "required": [
+          "audio_base64",
+          "mime_type",
+          "first_byte_ms",
+          "total_ms"
+        ],
+        "title": "SpeechProbe"
+      },
+      "SpeechStatus": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          },
+          "key_configured": {
+            "type": "boolean",
+            "title": "Key Configured"
+          },
+          "voice": {
+            "type": "string",
+            "title": "Voice"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "config_writable": {
+            "type": "boolean",
+            "title": "Config Writable"
+          },
+          "recognition_enabled": {
+            "type": "boolean",
+            "title": "Recognition Enabled",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "enabled",
+          "key_configured",
+          "voice",
+          "model",
+          "config_writable"
+        ],
+        "title": "SpeechStatus"
+      },
+      "SyncWorkbench": {
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Revision"
+          },
+          "document": {
+            "$ref": "#/components/schemas/Document"
+          },
+          "client_request_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Client Request Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "expected_revision",
+          "document",
+          "client_request_id"
+        ],
+        "title": "SyncWorkbench"
+      },
+      "ToolRequest": {
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Revision"
+          },
+          "client_request_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Client Request Id"
+          },
+          "arguments": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Arguments"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "expected_revision",
+          "client_request_id"
+        ],
+        "title": "ToolRequest"
+      },
+      "UIActionTicket": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "open_item",
+              "focus_hotspot",
+              "audio_pause",
+              "audio_resume",
+              "audio_repeat",
+              "audio_stop"
+            ],
+            "title": "Type"
+          },
+          "item_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Item Id"
+          },
+          "hotspot_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hotspot Id"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "title": "Expected Revision"
+          },
+          "expires_at": {
+            "type": "string",
+            "title": "Expires At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "item_id",
+          "hotspot_id",
+          "expected_revision",
+          "expires_at"
+        ],
+        "title": "UIActionTicket"
+      },
+      "UICancelInput": {
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Revision"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "expected_revision"
+        ],
+        "title": "UICancelInput"
+      },
+      "UIChoice": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "text"
+        ],
+        "title": "UIChoice"
+      },
+      "UIContextInput": {
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Revision"
+          },
+          "item_id": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]{1,64}$",
+            "title": "Item Id"
+          },
+          "hotspot_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hotspot Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "expected_revision",
+          "item_id"
+        ],
+        "title": "UIContextInput"
+      },
+      "UIPlanInput": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Text"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Revision"
+          },
+          "client_request_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Client Request Id"
+          },
+          "supported_actions": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "open_item",
+                "focus_hotspot",
+                "audio_pause",
+                "audio_resume",
+                "audio_repeat",
+                "audio_stop"
+              ]
+            },
+            "type": "array",
+            "maxItems": 6,
+            "title": "Supported Actions"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "text",
+          "expected_revision",
+          "client_request_id",
+          "supported_actions"
+        ],
+        "title": "UIPlanInput"
+      },
+      "UIPlanResult": {
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": [
+              "action",
+              "ask",
+              "clarify",
+              "completed"
+            ],
+            "title": "Decision"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "session": {
+            "$ref": "#/components/schemas/SessionState"
+          },
+          "action": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UIActionTicket"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "interaction": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/InteractionInput"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "choices": {
+            "items": {
+              "$ref": "#/components/schemas/UIChoice"
+            },
+            "type": "array",
+            "title": "Choices"
+          },
+          "resolver": {
+            "type": "string",
+            "const": "local_commands",
+            "title": "Resolver",
+            "default": "local_commands"
+          }
+        },
+        "type": "object",
+        "required": [
+          "decision",
+          "message",
+          "session"
+        ],
+        "title": "UIPlanResult"
+      },
+      "UIReceiptInput": {
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Revision"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "applied",
+              "failed",
+              "unsupported",
+              "cancelled"
+            ],
+            "title": "Status"
+          },
+          "actual_item_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual Item Id"
+          },
+          "actual_hotspot_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual Hotspot Id"
+          },
+          "playback_state": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "playing",
+                  "paused",
+                  "stopped"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Playback State"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "expected_revision",
+          "status"
+        ],
+        "title": "UIReceiptInput"
+      },
+      "UIReceiptResult": {
+        "properties": {
+          "action_id": {
+            "type": "string",
+            "title": "Action Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "applied",
+              "failed",
+              "unsupported",
+              "cancelled"
+            ],
+            "title": "Status"
+          },
+          "duplicate": {
+            "type": "boolean",
+            "title": "Duplicate"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "session": {
+            "$ref": "#/components/schemas/SessionState"
+          },
+          "interaction": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/InteractionInput"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "action_id",
+          "status",
+          "duplicate",
+          "message",
+          "session"
+        ],
+        "title": "UIReceiptResult"
+      },
+      "UIState": {
+        "properties": {
+          "session": {
+            "$ref": "#/components/schemas/SessionState"
+          },
+          "pending_action": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UIActionTicket"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "action_types": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "open_item",
+                "focus_hotspot",
+                "audio_pause",
+                "audio_resume",
+                "audio_repeat",
+                "audio_stop"
+              ]
+            },
+            "type": "array",
+            "title": "Action Types"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session",
+          "pending_action",
+          "action_types"
+        ],
+        "title": "UIState"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "ViewState": {
+        "properties": {
+          "direction": {
+            "type": "string",
+            "enum": [
+              "front",
+              "top",
+              "perspective",
+              "custom"
+            ],
+            "title": "Direction",
+            "default": "perspective"
+          },
+          "azimuth_deg": {
+            "type": "number",
+            "maximum": 360.0,
+            "minimum": -360.0,
+            "title": "Azimuth Deg",
+            "default": 0
+          },
+          "polar_deg": {
+            "type": "number",
+            "maximum": 88.0,
+            "minimum": 1.43,
+            "title": "Polar Deg",
+            "default": 83.82
+          },
+          "zoom_percent": {
+            "type": "number",
+            "maximum": 190.0,
+            "minimum": 57.0,
+            "title": "Zoom Percent",
+            "default": 100
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "ViewState"
+      },
+      "VoiceTranscription": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "command": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "audio_pause",
+                  "audio_resume",
+                  "audio_repeat",
+                  "audio_stop"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Command"
+          },
+          "latency_ms": {
+            "type": "integer",
+            "title": "Latency Ms"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text",
+          "command",
+          "latency_ms"
+        ],
+        "title": "VoiceTranscription"
+      },
+      "WheelState": {
+        "properties": {
+          "rotating": {
+            "type": "boolean",
+            "title": "Rotating",
+            "default": true
+          },
+          "speed_rpm": {
+            "type": "number",
+            "maximum": 60.0,
+            "minimum": 5.0,
+            "title": "Speed Rpm",
+            "default": 30
+          },
+          "rotation_deg": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": -180.0,
+            "title": "Rotation Deg",
+            "default": 0
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "WheelState"
+      },
+      "WorkbenchReceipt": {
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Revision"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "applied",
+              "failed",
+              "cancelled"
+            ],
+            "title": "Status"
+          },
+          "document": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Document"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "artifacts": {
+            "items": {
+              "$ref": "#/components/schemas/ArtifactReceipt"
+            },
+            "type": "array",
+            "maxItems": 1,
+            "title": "Artifacts"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "expected_revision",
+          "status"
+        ],
+        "title": "WorkbenchReceipt"
+      },
+      "WorkbenchRequest": {
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Revision"
+          },
+          "client_request_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Client Request Id"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Text"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "expected_revision",
+          "client_request_id",
+          "text"
+        ],
+        "title": "WorkbenchRequest"
+      }
+    }
+  }
+}
