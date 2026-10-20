@@ -1,0 +1,39 @@
+name: Import Chengyi 3.0 source
+on:
+  push:
+    paths:
+      - .github/workflows/import-chengyi.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import-source:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout destination
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Download pinned Chengyi 3.0 archive
+        env:
+          SOURCE_SHA: a8c2a1ac526447304942ae99e264eaf597215685
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/chengyi-source"
+          curl -fL --retry 3 "https://codeload.github.com/ZeroOnehub/chengyi-3/tar.gz/$SOURCE_SHA" -o "$RUNNER_TEMP/source.tar.gz"
+          tar -xzf "$RUNNER_TEMP/source.tar.gz" -C "$RUNNER_TEMP/chengyi-source" --strip-components=1
+          test -s "$RUNNER_TEMP/chengyi-source/index.html"
+          test -s "$RUNNER_TEMP/chengyi-source/assets/video/enter.mp4"
+          rsync -a "$RUNNER_TEMP/chengyi-source/" ./
+      - name: Commit and push full project
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "Import complete Chengyi 3.0 source (a8c2a1a)"
+            git push origin HEAD:main
+          fi
